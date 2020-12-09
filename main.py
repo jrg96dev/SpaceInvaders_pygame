@@ -2,8 +2,8 @@ import pygame
 from enemy import Enemy
 
 # This has to be the first line always
+FPS = 30
 pygame.init()
-pygame.key.set_repeat(1, 2)
 clock = pygame.time.Clock()
 
 # -------------- RESOURCE LOADIN ------------------
@@ -15,6 +15,9 @@ enemy_img = pygame.image.load('enemy.png')
 running = True
 player_x = 370
 player_y = 400
+
+left_pressing = False
+right_pressing = False
 
 enemies = [Enemy()]
 
@@ -31,10 +34,19 @@ def draw_enemies():
     for enemy in enemies:
         screen.blit(enemy.sprite, (enemy.pos_x, enemy.pos_y))
 
-def calculate_player_position(direction):
+def calculate_player_position():
     global player_x
+    global left_pressing
+    global right_pressing
 
-    movement = 0.4
+    direction = 0
+    movement = 5
+
+    if left_pressing:
+        direction = -1
+    elif right_pressing:
+        direction = +1
+
     player_x += direction * movement
 
     # Check boundaries and correct anything
@@ -46,6 +58,9 @@ def calculate_player_position(direction):
 
 
 def event_handling(event):
+    global left_pressing
+    global right_pressing
+
     run = True
 
     # Window events
@@ -53,11 +68,17 @@ def event_handling(event):
         run = False
 
     # Arrow key events
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT]:
-        calculate_player_position(-1)
-    elif keys[pygame.K_RIGHT]:
-        calculate_player_position(+1)
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_LEFT:
+            left_pressing = True
+        elif event.key == pygame.K_RIGHT:
+            right_pressing = True
+
+    if event.type == pygame.KEYUP:
+        if event.key == pygame.K_LEFT:
+            left_pressing = False
+        elif event.key == pygame.K_RIGHT:
+            right_pressing = False
 
     return run
 
@@ -68,9 +89,12 @@ while running:
 
     # Refreshing screen
     screen.fill((0, 0, 0))
+
+    calculate_player_position()
     draw_player()
     draw_enemies()
+
     pygame.display.update()
 
     # Run whole game on 30 fps
-    clock.tick(30)
+    clock.tick(FPS)
